@@ -558,17 +558,14 @@ class SignalAdapter(BasePlatformAdapter):
             })
             if not result:
                 return None, ""
+            # Handle dict response (signal-cli returns {"data": "base64..."})
+            if isinstance(result, dict):
+                result = result.get("data")
+                if not result:
+                    logger.warning("Signal: attachment response missing 'data' key")
+                    return None, ""
             raw_data = base64.b64decode(result)
 
-        # Handle dict response (signal-cli returns {"data": "base64..."})
-        if isinstance(result, dict):
-            result = result.get("data")
-            if not result:
-                logger.warning("Signal: attachment response missing 'data' key")
-                return None, ""
-
-        # Result is base64-encoded file content
-        raw_data = base64.b64decode(result)
         ext = _guess_extension(raw_data)
 
         if _is_image_ext(ext):
